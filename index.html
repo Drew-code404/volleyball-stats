@@ -1,0 +1,894 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Volleyball Stat Tracker</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #172027;
+      --muted: #5e6a72;
+      --line: #d8e1e6;
+      --field: #f4f7f5;
+      --panel: #ffffff;
+      --our: #176f55;
+      --their: #a43f32;
+      --other: #31465a;
+      --soft-our: #e6f3ee;
+      --soft-their: #fae9e6;
+      --soft-other: #e9eef3;
+      --shadow: 0 10px 24px rgba(23, 32, 39, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--field);
+      color: var(--ink);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 18px;
+      line-height: 1.35;
+    }
+
+    button {
+      font: inherit;
+    }
+
+    .app {
+      width: min(100%, 720px);
+      margin: 0 auto;
+      padding: 14px;
+      padding-bottom: 28px;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 8px 2px 14px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 1.35rem;
+      line-height: 1.1;
+      letter-spacing: 0;
+    }
+
+    .status {
+      color: var(--muted);
+      font-size: 0.95rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .scoreboard {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .score {
+      min-height: 116px;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+
+    .score span {
+      display: block;
+      color: var(--muted);
+      font-weight: 800;
+      font-size: 1rem;
+    }
+
+    .score strong {
+      display: block;
+      margin-top: 8px;
+      font-size: 3.4rem;
+      line-height: 0.95;
+      letter-spacing: 0;
+    }
+
+    .section {
+      margin-top: 14px;
+    }
+
+    .section h2 {
+      margin: 0 0 8px;
+      color: var(--muted);
+      font-size: 1rem;
+      letter-spacing: 0;
+    }
+
+    .actions {
+      display: grid;
+      gap: 10px;
+    }
+
+    .roster-panel {
+      display: grid;
+      gap: 10px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+
+    .roster-entry {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+    }
+
+    .roster-entry input {
+      width: 100%;
+      min-height: 54px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px 12px;
+      color: var(--ink);
+      font: inherit;
+      font-size: 1.05rem;
+      font-weight: 800;
+      background: #fff;
+    }
+
+    .save-roster-button {
+      min-height: 54px;
+      border: 0;
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: #fff;
+      background: var(--other);
+      font-weight: 900;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+
+    .player-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .player-button {
+      min-height: 56px;
+      border: 2px solid var(--line);
+      border-radius: 8px;
+      padding: 8px;
+      color: var(--ink);
+      background: #fff;
+      font-weight: 950;
+      font-size: 1.1rem;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+
+    .player-button.active {
+      border-color: var(--our);
+      color: #fff;
+      background: var(--our);
+    }
+
+    .selected-player {
+      min-height: 44px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      color: var(--ink);
+      background: var(--soft-our);
+      font-weight: 900;
+      text-align: center;
+    }
+
+    .button-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+
+    .stat-button,
+    .utility-button {
+      width: 100%;
+      min-height: 66px;
+      border: 0;
+      border-radius: 8px;
+      color: #fff;
+      font-weight: 900;
+      font-size: 1.1rem;
+      text-align: left;
+      padding: 14px 16px;
+      box-shadow: var(--shadow);
+      touch-action: manipulation;
+      cursor: pointer;
+    }
+
+    .stat-button:active,
+    .utility-button:active {
+      transform: translateY(1px);
+    }
+
+    .stat-button small {
+      display: block;
+      margin-bottom: 4px;
+      opacity: 0.9;
+      font-size: 1rem;
+      font-weight: 800;
+    }
+
+    .our {
+      background: var(--our);
+    }
+
+    .their {
+      background: var(--their);
+    }
+
+    .utility-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .utility-button {
+      min-height: 58px;
+      background: var(--other);
+      text-align: center;
+      padding: 12px;
+    }
+
+    .utility-button.danger {
+      background: #7b2f2b;
+    }
+
+    .utility-button.secondary {
+      background: #425568;
+    }
+
+    .totals {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .total {
+      min-height: 82px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      padding: 12px;
+    }
+
+    .total span {
+      display: block;
+      color: var(--muted);
+      font-size: 0.92rem;
+      font-weight: 800;
+    }
+
+    .total strong {
+      display: block;
+      margin-top: 4px;
+      font-size: 2rem;
+      line-height: 1;
+    }
+
+    .log {
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+    }
+
+    .log-list {
+      max-height: 320px;
+      overflow: auto;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .log-list li {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 10px;
+      align-items: center;
+      min-height: 56px;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+      font-weight: 800;
+    }
+
+    .log-list li:last-child {
+      border-bottom: 0;
+    }
+
+    .log-index {
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .log-score {
+      color: var(--muted);
+      font-size: 0.95rem;
+      white-space: nowrap;
+    }
+
+    .empty-log {
+      padding: 18px 12px;
+      color: var(--muted);
+      font-weight: 800;
+      text-align: center;
+    }
+
+    .player-totals {
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+    }
+
+    .player-total-row {
+      display: grid;
+      grid-template-columns: 72px repeat(6, 1fr);
+      gap: 6px;
+      align-items: center;
+      min-width: 620px;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+      font-size: 0.95rem;
+      font-weight: 850;
+      text-align: center;
+    }
+
+    .player-total-row:last-child {
+      border-bottom: 0;
+    }
+
+    .player-total-row.header {
+      color: var(--muted);
+      background: var(--soft-other);
+      font-size: 0.88rem;
+    }
+
+    .player-total-row strong {
+      text-align: left;
+    }
+
+    .player-totals-scroll {
+      overflow-x: auto;
+    }
+
+    @media (min-width: 560px) {
+      .app {
+        padding: 20px;
+      }
+
+      .button-grid,
+      .totals {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .player-grid {
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+      }
+
+      .stat-button {
+        min-height: 96px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header>
+      <h1>Volleyball Stat Tracker</h1>
+      <div class="status" id="saveStatus">Saved</div>
+    </header>
+
+    <section class="scoreboard" aria-label="Scoreboard">
+      <div class="score">
+        <span>Our Score</span>
+        <strong id="ourScore">0</strong>
+      </div>
+      <div class="score">
+        <span>Opponent</span>
+        <strong id="opponentScore">0</strong>
+      </div>
+    </section>
+
+    <section class="section" aria-label="Roster and active player">
+      <h2>Player</h2>
+      <div class="roster-panel">
+        <div class="roster-entry">
+          <input id="rosterInput" type="text" inputmode="text" autocomplete="off" placeholder="2, 4, 7, 10, 12, 18">
+          <button class="save-roster-button" id="saveRosterButton">Save</button>
+        </div>
+        <div class="player-grid" id="playerButtons"></div>
+        <div class="selected-player" id="selectedPlayerLabel">Selected: No Player</div>
+      </div>
+    </section>
+
+    <section class="section actions" aria-label="Match actions">
+      <div>
+        <h2>Our Point</h2>
+        <div class="button-grid">
+          <button class="stat-button our" data-action="servePoint">
+            <small>Our Point</small>
+            Serve Point
+          </button>
+          <button class="stat-button our" data-action="passPoint">
+            <small>Our Point</small>
+            Pass Point
+          </button>
+          <button class="stat-button our" data-action="otherPoint">
+            <small>Our Point</small>
+            Other Point
+          </button>
+        </div>
+      </div>
+
+      <div>
+        <h2>Their Point</h2>
+        <div class="button-grid">
+          <button class="stat-button their" data-action="serveError">
+            <small>Their Point</small>
+            Serve Error
+          </button>
+          <button class="stat-button their" data-action="passingError">
+            <small>Their Point</small>
+            Passing Error
+          </button>
+          <button class="stat-button their" data-action="otherError">
+            <small>Their Point</small>
+            Other Error
+          </button>
+        </div>
+      </div>
+
+      <div class="utility-row">
+        <button class="utility-button secondary" id="undoButton">Undo Last</button>
+        <button class="utility-button danger" id="resetButton">Reset Match</button>
+      </div>
+      <button class="utility-button" id="exportButton">Export CSV</button>
+    </section>
+
+    <section class="section" aria-label="Live totals">
+      <h2>Live Totals</h2>
+      <div class="totals">
+        <div class="total"><span>Serving Points</span><strong id="servingPoints">0</strong></div>
+        <div class="total"><span>Passing Points</span><strong id="passingPoints">0</strong></div>
+        <div class="total"><span>Other Points</span><strong id="otherPoints">0</strong></div>
+        <div class="total"><span>Serve Errors</span><strong id="serveErrors">0</strong></div>
+        <div class="total"><span>Passing Errors</span><strong id="passingErrors">0</strong></div>
+        <div class="total"><span>Other Errors</span><strong id="otherErrors">0</strong></div>
+      </div>
+    </section>
+
+    <section class="section" aria-label="Player totals">
+      <h2>Player Totals</h2>
+      <div class="player-totals">
+        <div class="player-totals-scroll" id="playerTotals"></div>
+      </div>
+    </section>
+
+    <section class="section" aria-label="Play by play log">
+      <h2>Play-by-Play</h2>
+      <div class="log">
+        <ol class="log-list" id="playLog"></ol>
+        <div class="empty-log" id="emptyLog">No plays recorded yet.</div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const STORAGE_KEY = "middleSchoolVolleyballTrackerMatch";
+
+    const actionMap = {
+      servePoint: {
+        label: "Serve Point",
+        team: "Our Point",
+        score: "ourScore",
+        stat: "servingPoints"
+      },
+      passPoint: {
+        label: "Pass Point",
+        team: "Our Point",
+        score: "ourScore",
+        stat: "passingPoints"
+      },
+      otherPoint: {
+        label: "Other Point",
+        team: "Our Point",
+        score: "ourScore",
+        stat: "otherPoints"
+      },
+      serveError: {
+        label: "Serve Error",
+        team: "Their Point",
+        score: "opponentScore",
+        stat: "serveErrors"
+      },
+      passingError: {
+        label: "Passing Error",
+        team: "Their Point",
+        score: "opponentScore",
+        stat: "passingErrors"
+      },
+      otherError: {
+        label: "Other Error",
+        team: "Their Point",
+        score: "opponentScore",
+        stat: "otherErrors"
+      }
+    };
+
+    const defaultState = {
+      ourScore: 0,
+      opponentScore: 0,
+      servingPoints: 0,
+      passingPoints: 0,
+      otherPoints: 0,
+      serveErrors: 0,
+      passingErrors: 0,
+      otherErrors: 0,
+      roster: [],
+      selectedPlayer: "",
+      log: []
+    };
+
+    let state = loadState();
+
+    const elements = {
+      saveStatus: document.getElementById("saveStatus"),
+      ourScore: document.getElementById("ourScore"),
+      opponentScore: document.getElementById("opponentScore"),
+      servingPoints: document.getElementById("servingPoints"),
+      passingPoints: document.getElementById("passingPoints"),
+      otherPoints: document.getElementById("otherPoints"),
+      serveErrors: document.getElementById("serveErrors"),
+      passingErrors: document.getElementById("passingErrors"),
+      otherErrors: document.getElementById("otherErrors"),
+      rosterInput: document.getElementById("rosterInput"),
+      saveRosterButton: document.getElementById("saveRosterButton"),
+      playerButtons: document.getElementById("playerButtons"),
+      selectedPlayerLabel: document.getElementById("selectedPlayerLabel"),
+      playerTotals: document.getElementById("playerTotals"),
+      playLog: document.getElementById("playLog"),
+      emptyLog: document.getElementById("emptyLog"),
+      undoButton: document.getElementById("undoButton"),
+      resetButton: document.getElementById("resetButton"),
+      exportButton: document.getElementById("exportButton")
+    };
+
+    document.querySelectorAll("[data-action]").forEach((button) => {
+      button.addEventListener("click", () => addPlay(button.dataset.action));
+    });
+
+    elements.undoButton.addEventListener("click", undoLastAction);
+    elements.resetButton.addEventListener("click", resetMatch);
+    elements.exportButton.addEventListener("click", exportCsv);
+    elements.saveRosterButton.addEventListener("click", saveRoster);
+    elements.rosterInput.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        saveRoster();
+      }
+    });
+
+    render();
+
+    function loadState() {
+      const stored = localStorage.getItem(STORAGE_KEY);
+
+      if (!stored) {
+        return { ...defaultState, log: [] };
+      }
+
+      try {
+        const parsedState = { ...defaultState, ...JSON.parse(stored) };
+        parsedState.roster = Array.isArray(parsedState.roster) ? parsedState.roster : [];
+        parsedState.log = Array.isArray(parsedState.log) ? parsedState.log : [];
+        return parsedState;
+      } catch {
+        return { ...defaultState, log: [] };
+      }
+    }
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      elements.saveStatus.textContent = "Saved";
+    }
+
+    function addPlay(actionKey) {
+      const action = actionMap[actionKey];
+
+      state[action.score] += 1;
+      state[action.stat] += 1;
+      state.log.push({
+        actionKey,
+        label: action.label,
+        team: action.team,
+        player: state.selectedPlayer,
+        ourScore: state.ourScore,
+        opponentScore: state.opponentScore,
+        timestamp: new Date().toISOString()
+      });
+
+      render();
+      saveState();
+    }
+
+    function undoLastAction() {
+      const lastPlay = state.log.pop();
+
+      if (!lastPlay) {
+        return;
+      }
+
+      const action = actionMap[lastPlay.actionKey];
+      state[action.score] = Math.max(0, state[action.score] - 1);
+      state[action.stat] = Math.max(0, state[action.stat] - 1);
+
+      render();
+      saveState();
+    }
+
+    function resetMatch() {
+      const shouldReset = confirm("Reset this match and clear the play-by-play log?");
+
+      if (!shouldReset) {
+        return;
+      }
+
+      state = {
+        ...defaultState,
+        roster: state.roster,
+        selectedPlayer: state.selectedPlayer,
+        log: []
+      };
+      render();
+      saveState();
+    }
+
+    function render() {
+      elements.ourScore.textContent = state.ourScore;
+      elements.opponentScore.textContent = state.opponentScore;
+      elements.servingPoints.textContent = state.servingPoints;
+      elements.passingPoints.textContent = state.passingPoints;
+      elements.otherPoints.textContent = state.otherPoints;
+      elements.serveErrors.textContent = state.serveErrors;
+      elements.passingErrors.textContent = state.passingErrors;
+      elements.otherErrors.textContent = state.otherErrors;
+      elements.rosterInput.value = state.roster.join(", ");
+      elements.selectedPlayerLabel.textContent = `Selected: ${getPlayerLabel(state.selectedPlayer)}`;
+
+      renderPlayerButtons();
+      renderPlayerTotals();
+      elements.playLog.innerHTML = "";
+      elements.emptyLog.hidden = state.log.length > 0;
+      elements.undoButton.disabled = state.log.length === 0;
+
+      state.log.slice().reverse().forEach((play, reverseIndex) => {
+        const playNumber = state.log.length - reverseIndex;
+        const item = document.createElement("li");
+        item.innerHTML = `
+          <span class="log-index">#${playNumber}</span>
+          <span>${escapeHtml(getPlayerLabel(play.player))} - ${escapeHtml(play.team)}: ${escapeHtml(play.label)}</span>
+          <span class="log-score">${play.ourScore}-${play.opponentScore}</span>
+        `;
+        elements.playLog.appendChild(item);
+      });
+    }
+
+    function saveRoster() {
+      state.roster = parseRoster(elements.rosterInput.value);
+
+      if (state.selectedPlayer && !state.roster.includes(state.selectedPlayer)) {
+        state.selectedPlayer = "";
+      }
+
+      render();
+      saveState();
+    }
+
+    function parseRoster(value) {
+      const numbers = value
+        .split(",")
+        .map((number) => number.trim())
+        .filter(Boolean);
+
+      return [...new Set(numbers)].sort((a, b) => Number(a) - Number(b));
+    }
+
+    function selectPlayer(player) {
+      state.selectedPlayer = player;
+      render();
+      saveState();
+    }
+
+    function renderPlayerButtons() {
+      const players = ["", ...state.roster];
+      elements.playerButtons.innerHTML = "";
+
+      players.forEach((player) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = `player-button${state.selectedPlayer === player ? " active" : ""}`;
+        button.textContent = getPlayerLabel(player);
+        button.addEventListener("click", () => selectPlayer(player));
+        elements.playerButtons.appendChild(button);
+      });
+    }
+
+    function renderPlayerTotals() {
+      const totals = buildPlayerTotals();
+      const playersWithStats = Object.keys(totals)
+        .filter((player) => player || state.roster.includes(player))
+        .sort((a, b) => Number(a || 0) - Number(b || 0));
+
+      elements.playerTotals.innerHTML = `
+        <div class="player-total-row header">
+          <strong>Player</strong>
+          <span>SP</span>
+          <span>PP</span>
+          <span>OP</span>
+          <span>SE</span>
+          <span>PE</span>
+          <span>OE</span>
+        </div>
+      `;
+
+      if (playersWithStats.length === 0) {
+        elements.playerTotals.insertAdjacentHTML("beforeend", `
+          <div class="player-total-row">
+            <strong>No stats</strong>
+            <span>0</span><span>0</span><span>0</span><span>0</span><span>0</span><span>0</span>
+          </div>
+        `);
+        return;
+      }
+
+      playersWithStats.forEach((player) => {
+        const row = totals[player];
+        elements.playerTotals.insertAdjacentHTML("beforeend", `
+          <div class="player-total-row">
+            <strong>${escapeHtml(getPlayerLabel(player))}</strong>
+            <span>${row.servingPoints}</span>
+            <span>${row.passingPoints}</span>
+            <span>${row.otherPoints}</span>
+            <span>${row.serveErrors}</span>
+            <span>${row.passingErrors}</span>
+            <span>${row.otherErrors}</span>
+          </div>
+        `);
+      });
+    }
+
+    function exportCsv() {
+      const header = [
+        "Play",
+        "Time",
+        "Player",
+        "Team",
+        "Action",
+        "Our Score",
+        "Opponent Score"
+      ];
+
+      const rows = state.log.map((play, index) => [
+        index + 1,
+        new Date(play.timestamp).toLocaleString(),
+        getPlayerLabel(play.player),
+        play.team,
+        play.label,
+        play.ourScore,
+        play.opponentScore
+      ]);
+
+      rows.push([]);
+      rows.push(["Totals"]);
+      rows.push(["Our Score", state.ourScore]);
+      rows.push(["Opponent Score", state.opponentScore]);
+      rows.push(["Serving Points", state.servingPoints]);
+      rows.push(["Passing Points", state.passingPoints]);
+      rows.push(["Other Points", state.otherPoints]);
+      rows.push(["Serve Errors", state.serveErrors]);
+      rows.push(["Passing Errors", state.passingErrors]);
+      rows.push(["Other Errors", state.otherErrors]);
+      rows.push([]);
+      rows.push(["Player Totals"]);
+      rows.push(["Player", "Serving Points", "Passing Points", "Other Points", "Serve Errors", "Passing Errors", "Other Errors"]);
+
+      Object.entries(buildPlayerTotals()).forEach(([player, totals]) => {
+        rows.push([
+          getPlayerLabel(player),
+          totals.servingPoints,
+          totals.passingPoints,
+          totals.otherPoints,
+          totals.serveErrors,
+          totals.passingErrors,
+          totals.otherErrors
+        ]);
+      });
+
+      const csv = [header, ...rows].map(formatCsvRow).join("\n");
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      const dateStamp = new Date().toISOString().slice(0, 10);
+
+      link.href = url;
+      link.download = `volleyball-match-${dateStamp}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    function formatCsvRow(row) {
+      return row.map((value) => {
+        const text = String(value ?? "");
+        return `"${text.replaceAll('"', '""')}"`;
+      }).join(",");
+    }
+
+    function buildPlayerTotals() {
+      const totals = {};
+
+      state.roster.forEach((player) => {
+        totals[player] = createEmptyPlayerTotals();
+      });
+
+      state.log.forEach((play) => {
+        const player = play.player || "";
+
+        if (!totals[player]) {
+          totals[player] = createEmptyPlayerTotals();
+        }
+
+        const action = actionMap[play.actionKey];
+
+        if (action) {
+          totals[player][action.stat] += 1;
+        }
+      });
+
+      return totals;
+    }
+
+    function createEmptyPlayerTotals() {
+      return {
+        servingPoints: 0,
+        passingPoints: 0,
+        otherPoints: 0,
+        serveErrors: 0,
+        passingErrors: 0,
+        otherErrors: 0
+      };
+    }
+
+    function getPlayerLabel(player) {
+      return player ? `#${player}` : "No Player";
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+  </script>
+</body>
+</html>
