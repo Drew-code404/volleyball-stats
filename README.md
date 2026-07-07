@@ -1,4 +1,4 @@
-# volleyball-stats-racker
+# volleyball-stats-tracker
 
   A simple mobile-first volleyball stat tracker for middle school matches.
 
